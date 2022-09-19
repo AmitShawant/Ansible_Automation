@@ -130,8 +130,8 @@ My name is {{ ansible_nodename }}.My Ip Addresss is {{ ansible_eth0.ipv4.address
   tasks:
     - name: Ansible template inventory collection example.
       template:
-        src: inventory_.j2
-        dest: /var/tmp/{{ ansible_nodename }}_inventory.txt
+        src: inventory.j2
+        dest: /var/tmp/inventory.txt
         mode: 0777
 ```
 
@@ -142,7 +142,7 @@ My name is {{ ansible_nodename }}.My Ip Addresss is {{ ansible_eth0.ipv4.address
 ansible-playbook file.yml
 ```
 
-- Verify the file from ansible client machines
+- Verify the file from ansible **client machines**
 
 ```
 ansible node1 -m command -a "cat /var/tmp/node1_inventory.txt"
