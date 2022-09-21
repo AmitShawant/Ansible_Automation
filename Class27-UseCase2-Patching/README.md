@@ -26,53 +26,28 @@ this above ping command should return with ping / pong green color.
 ## scenario 1: Linux patching
 
 
-```
-vim patch.yml
-```
-```
-wget https://github.com/cloudnloud/Ansible_Automation/blob/main/Class27-UseCase2-Patching/appcheck.sh
-```
-- create normal playbook
-
-```
 ---
 - name: " This playbook is to apply patches to linux servers"
-  hosts: node1,node2
-  serial: 2
+  hosts: all
   tasks:
   - name: install httpd
     yum:
      name: httpd
      state: latest
-    delegate_to: node2
-  - name: "Check whether application and database are running"
-    script: /home/ansible/dev/appcheck.sh
-    args:
-      executable: /bin/bash
-    ignore_errors: true
-    register: application_process_check
-  - name: "Will check and start patching on linux servers"
-    fail: msg='{{ inventory_hostname }} have running Application. Please stop application and then proceed with patch.'
-    when: application_process_check.stdout == "process is running"
-  - name: "Applying patches to the server"
-    yum: name=kernel state=latest
-    when: application_process_check.stdout == "Process is not running.\r\n" and ansible_distribution == "CentOS" or ansible_distribution == "RedHat"
-    register: patch_update
   - name: "Check if reboot required"
     shell: KERNEL_NEW=$(rpm -q --last kernel |head -1 | awk '{print $1}'|sed 's/kernel-//'); KERNEL_NOW=$(uname -r); if [[ $KERNEL_NEW != $KERNEL_NOW ]]; then echo "reboot needed"; else echo "reboot not needed"; fi
     ignore_errors: true
     register: reboot_status
   - name: "This play is to restart the system using above status check"
     command: shutdown -r +1 "Rebooting System After Patching"
-    async: 0
-    poll: 0
+    async: 0 #Maximum allowed time
+    poll: 0  #The poll keyword accepts a numeric value to know how many seconds it should wait before polling or following up with the long-running async task 10 sec by default
     when: reboot_status.stdout == "reboot needed"
     register: reboot_started
     ignore_errors: true
-
   - name: "This play will wait for 1 minutes for system to come up"
     pause: minutes=1
-    
+
     # Now we will run a local 'ansible -m ping' on this host until it returns.
     # This works with the existing ansible hosts inventory and so any custom ansible_ssh_hosts definitions are being used
   - name: check the system status
@@ -85,10 +60,10 @@ wget https://github.com/cloudnloud/Ansible_Automation/blob/main/Class27-UseCase2
     # And finally, execute 'uptime' when the host is back.
   - name: check the client uptime
     shell: uptime
-```
-- save the file
+~
+~
+~
 
-- To execute the file.
 
 ```
 ansible-playbook patch.yml
